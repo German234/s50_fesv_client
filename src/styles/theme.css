@@ -1,0 +1,180 @@
+/*
+ * Tema de la plataforma sobre HeroUI v3 (CLAUDE.md §4).
+ *
+ * HeroUI declara sus variables dentro de capas (`@layer theme` > `@layer base`);
+ * las de este archivo van fuera de capa para prevalecer siempre. Los selectores
+ * replican los de HeroUI (`:root`/`.light` y `.dark`/`[data-theme]`) para que un
+ * contenedor con la clase `light` o `dark` pueda forzar el tema localmente
+ * (lo usa /dev/tema).
+ */
+
+:root,
+.light,
+[data-theme="light"] {
+  color-scheme: light;
+
+  --background: #f5f5f6;
+  --surface: #ffffff;
+  --surface-secondary: #f4f4f5;
+  --default: #ebebee;
+  --border: #e4e4e7;
+  --foreground: #18181b;
+  --muted: #71717a;
+  --accent: #0369d9;
+  --accent-soft: #e6f1fe;
+  --success: #17803d;
+  --warning: #a35b00;
+  --danger: #d92d20;
+
+  /* Texto sobre los colores sólidos */
+  --accent-foreground: #ffffff;
+  --success-foreground: #ffffff;
+  --warning-foreground: #ffffff;
+  --danger-foreground: #ffffff;
+  --default-foreground: var(--foreground);
+
+  /* Chips de estado (texto / fondo) */
+  --accent-soft-foreground: #005bb8;
+  --success-soft: #e8f7ee;
+  --success-soft-foreground: #146c36;
+  --warning-soft: #fff4db;
+  --warning-soft-foreground: #8a4d00;
+  --danger-soft: #feeceb;
+  --danger-soft-foreground: #b42318;
+
+  /* Rechazado: único chip sólido y oscuro */
+  --rejected: #27272a;
+  --rejected-foreground: #ffffff;
+}
+
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: #0f0f12;
+  --surface: #1b1b20;
+  --surface-secondary: #232329;
+  --default: #2a2a31;
+  --border: #2e2e35;
+  --foreground: #fafafa;
+  --muted: #a1a1aa;
+  --accent: #4c9dff;
+  --accent-soft: #0f2747;
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --danger: #f87171;
+
+  /* En oscuro los colores sólidos son claros: el texto encima va en tinta. */
+  --accent-foreground: #0f0f12;
+  --success-foreground: #0f0f12;
+  --warning-foreground: #0f0f12;
+  --danger-foreground: #0f0f12;
+  --default-foreground: var(--foreground);
+
+  /* Chips "soft oscuro": se derivan del color base, opacos sobre la superficie. */
+  --accent-soft-foreground: #8ec2ff;
+  --success-soft: color-mix(in oklab, var(--success) 16%, var(--surface));
+  --success-soft-foreground: var(--success);
+  --warning-soft: color-mix(in oklab, var(--warning) 16%, var(--surface));
+  --warning-soft-foreground: var(--warning);
+  --danger-soft: color-mix(in oklab, var(--danger) 16%, var(--surface));
+  --danger-soft-foreground: var(--danger);
+
+  --rejected: #e4e4e7;
+  --rejected-foreground: #18181b;
+}
+
+/* Derivados comunes a claro y oscuro */
+:root,
+.light,
+.dark,
+[data-theme="light"],
+[data-theme="dark"] {
+  --overlay: var(--surface);
+  --separator: var(--border);
+  --focus: var(--accent);
+
+  /* Campos rellenos, sin borde (el foco lo pinta HeroUI con --focus) */
+  --field-background: var(--surface-secondary);
+  --field-foreground: var(--foreground);
+  --field-placeholder: var(--muted);
+  --field-radius: 12px;
+
+  /* Los hover de los soft se calculan sobre el soft definido arriba */
+  --accent-soft-hover: color-mix(in oklab, var(--accent-soft) 85%, var(--accent) 15%);
+  --success-soft-hover: color-mix(in oklab, var(--success-soft) 85%, var(--success) 15%);
+  --warning-soft-hover: color-mix(in oklab, var(--warning-soft) 85%, var(--warning) 15%);
+  --danger-soft-hover: color-mix(in oklab, var(--danger-soft) 85%, var(--danger) 15%);
+
+  /* Acción fiscal: tinta con texto inverso */
+  --fiscal: var(--foreground);
+  --fiscal-foreground: var(--background);
+  --fiscal-hover: color-mix(in oklab, var(--foreground) 86%, var(--background) 14%);
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  --color-rejected: var(--rejected);
+  --color-rejected-foreground: var(--rejected-foreground);
+  --color-fiscal: var(--fiscal);
+  --color-fiscal-foreground: var(--fiscal-foreground);
+
+  /* Radios de §4: kbd 6 · campo 12 (--radius-field de HeroUI) · tarjeta 20 · modal 24 */
+  --radius-kbd: 6px;
+  --radius-card: 20px;
+  --radius-modal: 24px;
+
+  /* Escala tipográfica de §4 (text-display, text-title, …) */
+  --text-display: 30px;
+  --text-display--line-height: 36px;
+  --text-display--font-weight: 700;
+  --text-title: 20px;
+  --text-title--line-height: 28px;
+  --text-title--font-weight: 600;
+  --text-heading: 15px;
+  --text-heading--line-height: 22px;
+  --text-heading--font-weight: 600;
+  --text-body: 14px;
+  --text-body--line-height: 20px;
+  --text-small: 13px;
+  --text-small--line-height: 18px;
+}
+
+@layer components {
+  .card {
+    border-radius: var(--radius-card);
+  }
+
+  .kbd {
+    border-radius: var(--radius-kbd);
+  }
+
+  /* secondary: gris default con texto normal (HeroUI lo pinta en tono accent) */
+  .button--secondary {
+    --button-fg: var(--default-foreground);
+  }
+
+  /* tertiary: accent-soft con texto accent (HeroUI lo pinta gris) */
+  .button--tertiary {
+    --button-bg: var(--accent-soft);
+    --button-bg-hover: var(--accent-soft-hover);
+    --button-bg-pressed: var(--accent-soft-hover);
+    --button-fg: var(--accent);
+  }
+
+  /* Variante propia: HeroUI no admite variantes nuevas en `variant`, ver FiscalButton */
+  .button--fiscal {
+    --button-bg: var(--fiscal);
+    --button-bg-hover: var(--fiscal-hover);
+    --button-bg-pressed: var(--fiscal-hover);
+    --button-fg: var(--fiscal-foreground);
+  }
+
+  /* Misma especificidad que `.chip--default.chip--soft` de HeroUI, declarada después */
+  .chip.chip--rejected {
+    --chip-bg: var(--rejected);
+    --chip-fg: var(--rejected-foreground);
+  }
+}

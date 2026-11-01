@@ -1,0 +1,7 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+@import "../styles/theme.css";
+
+body {
+  @apply bg-background text-foreground font-sans text-body antialiased;
+}
