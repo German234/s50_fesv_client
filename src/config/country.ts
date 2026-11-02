@@ -22,6 +22,30 @@ export interface DocumentTypeText {
   name: string;
 }
 
+/** Fuente (empresa de Sage 50). */
+export interface SourceText {
+  /** Biller.code: el valor de `?fuente=` y del parámetro `source` de la API. */
+  code: string;
+  name: string;
+  /** Prefijo de sus rutas de permisos en el backend ("cipsa" → "cipsa/fc_ccf"). */
+  routePrefix: string;
+}
+
+/**
+ * Fuentes provisionales hasta la etapa 6 (GET /catalogs/billers todavía no existe). Códigos y
+ * prefijos copiados de RouteKeys.SourcePrefixes del backend; dos no coinciden con su código
+ * en minúsculas: STRL → sterlin y DSPT → dsports. La legacy es una sola lista para ambos países.
+ */
+const LEGACY_SOURCES: SourceText[] = [
+  { code: "CIPSA", name: "CIPSA", routePrefix: "cipsa" },
+  { code: "SIAT", name: "SIAT", routePrefix: "siat" },
+  { code: "ESET", name: "ESET", routePrefix: "eset" },
+  { code: "STRL", name: "STERLIN", routePrefix: "sterlin" },
+  { code: "ECOM", name: "ECOM", routePrefix: "ecom" },
+  { code: "DSPT", name: "DSPORTS", routePrefix: "dsports" },
+  { code: "AKTIV", name: "AKTIV", routePrefix: "aktiv" },
+];
+
 export interface CountryTexts {
   code: CountryCode;
   /** Locale de React Aria y de Intl para fechas. */
@@ -40,6 +64,7 @@ export interface CountryTexts {
   inboxTabs: Partial<Record<InboxType, InboxTabTexts>>;
   documentTypes: DocumentTypeText[];
   identityDocuments: string[];
+  sources: SourceText[];
 }
 
 export const COUNTRY_TEXTS: Record<CountryCode, CountryTexts> = {
@@ -69,6 +94,7 @@ export const COUNTRY_TEXTS: Record<CountryCode, CountryTexts> = {
       { code: "14", name: "Sujeto excluido" },
     ],
     identityDocuments: ["NIT", "DUI", "NRC"],
+    sources: LEGACY_SOURCES,
   },
   DO: {
     code: "DO",
@@ -98,6 +124,7 @@ export const COUNTRY_TEXTS: Record<CountryCode, CountryTexts> = {
     ],
     // RNC: 9 dígitos · cédula: 11. Las regex se copiarán de docs/contrato.md del backend.
     identityDocuments: ["RNC", "Cédula"],
+    sources: LEGACY_SOURCES,
   },
 };
 
@@ -148,6 +175,10 @@ export function useCountry(): Country {
 
 export function findTransmitTab(country: Country, slug: string): TransmitTab | undefined {
   return country.transmitTabs.find((tab) => tab.slug === slug);
+}
+
+export function findSource(texts: CountryTexts, code: string): SourceText | undefined {
+  return texts.sources.find((source) => source.code === code);
 }
 
 export function findDocumentType(texts: CountryTexts, code: string): DocumentTypeText | undefined {

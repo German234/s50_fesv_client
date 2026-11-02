@@ -214,7 +214,7 @@ Datos:
 - **Por dominio:** `features/<dominio>/api.ts` exporta funciones async que reciben `signal` y devuelven tipos de `schema.d.ts` (rutas con `buildPath` + `PathParams`). `features/<dominio>/queries.ts` define `const <dominio>Keys = createQueryKeys("<dominio>")` y los hooks `useX` / `useXMutation`. Las pantallas solo importan de `queries.ts`. El dominio se crea en la etapa que lo conecta; `features/dev` es el ejemplo.
 - **Query keys:** `createQueryKeys` (`lib/api/queryKeys.ts`) → `[país, dominio, "list"|"detail", recurso, …, { source, ...filtros }]`. Invalidar `keys.all` alcanza todo el dominio.
 - **Reintentos:** las queries reintentan hasta 2 veces solo ante red o 5xx. Las mutaciones nunca (`retry: 0` global); en las de transmisión se declara también explícitamente, y el botón se deshabilita con `isPending`.
-- **Stores:** `useSourceStore` + `useSourceUrlSync()` (fuente ↔ `?fuente=`, la URL manda); `useSelectionStore` con `selectionScope(bandeja, tipo, fuente)`; `useUiStore` (densidad y sidebar, persistido en localStorage).
+- **Stores:** `useSourceStore` + `useSourceUrlSync(isKnown)` (fuente ↔ `?fuente=`, la URL manda; se monta una sola vez, en AppShell, y agrega la fuente activa a las URLs que llegan sin ella) + `useSource()` para leerla o cambiarla desde cualquier componente; `withSource(href, fuente)` para enlaces; `useSelectionStore` con `selectionScope(bandeja, tipo, fuente)`; `useUiStore` (densidad y sidebar, persistido en localStorage).
 - **Filtros:** `useUrlFilters(esquemaZod)` lee y escribe la URL con `router.replace`; un parámetro inválido se descarta y vale su default. Listas con `csv(...)`. Los componentes que lo usan van dentro de `<Suspense>`.
 
 ## §7 · Componentes fiscales (`components/fiscal/`)

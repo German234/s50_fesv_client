@@ -281,4 +281,25 @@
   .drawer__dialog.document-sheet[data-placement="right"] {
     border-radius: var(--radius-modal);
   }
+
+  /* Sidebar en drawer (< 1280 px): panel flotante redondeado, como el DocumentSheet */
+  .drawer__dialog.shell-drawer[data-placement="left"] {
+    border-radius: var(--radius-modal);
+  }
+
+  /* Segmentado del shell (Claro/Oscuro): la opción activa es una píldora surface con sombra */
+  .segmented .toggle-button {
+    --toggle-button-bg: transparent;
+    --toggle-button-bg-hover: transparent;
+    --toggle-button-bg-pressed: transparent;
+    --toggle-button-fg: var(--muted);
+    --toggle-button-bg-selected: var(--surface);
+    --toggle-button-bg-selected-hover: var(--surface);
+    --toggle-button-bg-selected-pressed: var(--surface);
+    --toggle-button-fg-selected: var(--foreground);
+  }
+
+  .segmented .toggle-button[data-selected="true"] {
+    box-shadow: var(--surface-shadow);
+  }
 }

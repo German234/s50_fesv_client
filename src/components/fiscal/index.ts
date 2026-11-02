@@ -30,6 +30,13 @@ export {
 export { FiscalButton } from "./FiscalButton";
 export { FiscalDateField, type FiscalDateFieldProps } from "./FiscalDateField";
 export { Money, type MoneyProps } from "./Money";
-export { EmptyState, ErrorState, type EmptyStateProps, type ErrorStateProps } from "./StateViews";
+export {
+  EmptyState,
+  ErrorState,
+  ForbiddenState,
+  type EmptyStateProps,
+  type ErrorStateProps,
+  type ForbiddenStateProps,
+} from "./StateViews";
 export { DOCUMENT_STATUSES, StatusChip, statusLabel, type DocumentStatus, type StatusChipProps } from "./StatusChip";
 export { TableSkeleton, type TableSkeletonProps } from "./TableSkeleton";

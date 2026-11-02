@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import { Lock, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 type Tone = "success" | "neutral" | "danger" | "warning";
@@ -93,4 +93,30 @@ export function ErrorState({
 
   if (!fullScreen) return card;
   return <main className="flex min-h-dvh items-center justify-center bg-background p-6">{card}</main>;
+}
+
+export interface ForbiddenStateProps {
+  /** Pantalla o acción: "esta pantalla", "Rutas". */
+  resource?: string;
+  /** Nombre del rol, si se conoce. */
+  roleName?: string;
+  actions?: ReactNode;
+  className?: string;
+}
+
+/** 403: sin acceso. La sesión sigue abierta; solo el 401 la cierra. */
+export function ForbiddenState({ resource = "esta pantalla", roleName, actions, className }: ForbiddenStateProps) {
+  return (
+    <EmptyState
+      icon={Lock}
+      title="Sin acceso"
+      description={
+        <>
+          {roleName ? <>Tu rol ({roleName})</> : "Tu rol"} no tiene acceso a {resource}. Pide acceso a un administrador.
+        </>
+      }
+      actions={actions}
+      className={className}
+    />
+  );
 }

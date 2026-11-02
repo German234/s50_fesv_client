@@ -1,6 +1,14 @@
+import { Suspense } from "react";
+import { AppShell } from "@/components/shell/AppShell";
 import { SessionGuard } from "@/features/auth/components/SessionGuard";
 
-// El shell (Sidebar y TopBar) llega en su propio bloque.
+// AppShell lee ?fuente= con useSearchParams: necesita un Suspense para el render estático.
 export default function AppLayout({ children }: LayoutProps<"/">) {
-  return <SessionGuard>{children}</SessionGuard>;
+  return (
+    <SessionGuard>
+      <Suspense>
+        <AppShell>{children}</AppShell>
+      </Suspense>
+    </SessionGuard>
+  );
 }

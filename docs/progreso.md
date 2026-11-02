@@ -87,3 +87,80 @@ Reconstruida a partir del commit `5a34b36` y del código; el resumen original no
 7. **Decisiones pendientes.**
    - Access token corto con refresh token en cookies: pospuesto. Requiere `/auth/refresh` (con rotación) y `/auth/logout` en el backend, y elegir quién pone las cookies (backend o Next como BFF).
    - Mientras tanto, la sesión dura lo que el token (1 día).
+
+## Shell · Layout autenticado, navegación, paleta y atajos · 2026-11-01
+
+1. **Archivos creados y modificados.**
+   - Shell (`components/shell/`):
+     - `AppShell.tsx`: sidebar fija desde 1280 px y en Drawer por debajo; TopBar; "sin acceso" por ruta (`RouteAccessGate`); atajos ⌘K, ? y F; enlace "Saltar al contenido".
+     - `Sidebar.tsx`: marca, menú del backend con un nivel de submenú (grupos plegables, abiertos si contienen la pantalla actual), ítem activo en surface con sombra y soporte de badges, todavía sin datos.
+     - `SourceSwitcher.tsx` (Select de HeroUI), `ThemeToggle.tsx` (Claro/Oscuro segmentado) y `UserCard.tsx`.
+     - `TopBar.tsx`: migas, campo que abre la paleta, `EnvironmentChip` (oculto, ver 5) y botón de atajos. `breadcrumbs.ts`.
+     - `CommandPalette.tsx` (Modal, combobox propio con `aria-activedescendant`) y `ShortcutsSheet.tsx`.
+     - `PendingScreen.tsx`: pantalla "en construcción" para las rutas del menú que aún no se conectan.
+   - Menú (`features/menu/`): `icons.ts` (Material Icons → lucide, con fallback `CircleDot`), `routes.ts` (traducción `Route.path` ↔ ruta del frontend y claves de permiso por ubicación), `queries.ts` (`useNavigation`, `useAllowedSources`, `useRouteAccess`) e `index.ts`.
+   - `lib/hooks/useShortcuts.ts`: registro central (`useShortcut`, `useShortcutListener`, `useRegisteredShortcuts`, `formatCombo`, `useIsMac`). No dispara con el foco en input, textarea, select o contenteditable, ni con un modal abierto, salvo que el atajo lo permita. `lib/hooks/useMediaQuery.ts`.
+   - Páginas provisionales: `/emitidos`, `/clientes`, `/correlativos` (404 si `!supportsCorrelativesAdmin`), `/admin/{menus,rutas,permisos,usuarios}` y `/transmitir/[tipo]` (404 si la pestaña no existe en el país). `(app)/page.tsx` pasa a `PendingScreen`; su botón de cerrar sesión se movió a la tarjeta de usuario.
+   - Modificados:
+     - `(app)/layout.tsx`: SessionGuard + Suspense + AppShell.
+     - `config/country.ts`: `sources` (`SourceText`, provisional, ver 5) y `findSource`.
+     - `stores/useSourceStore.ts`: `useSourceUrlSync(isKnown)` descarta códigos desconocidos y agrega la fuente a las URLs que llegan sin ella; nuevos `useSource()` y `withSource()`.
+     - `stores/useUiStore.ts`: `paletteOpen`, `shortcutsOpen` y `sourcePickerOpen`, sin persistir.
+     - `features/auth/queries.ts`: `useSession` expone `isFetching` y `refetch`.
+     - `components/fiscal/StateViews.tsx`: `ForbiddenState`.
+     - `lib/format.ts`: `initials`.
+     - `styles/theme.css`: `.segmented` (opción activa en surface con sombra) y `.shell-drawer`.
+     - `lib/api/schema.d.ts`: regenerado; solo agrega los endpoints de Accesos.
+     - `CLAUDE.md` §6: línea de stores.
+2. **Qué se probó contra el backend local.** Backend en :5116 contra NEW_FESV (país DO). Edge headless vía CDP a 1440, 1280, 1100 y 390 px. Todas correctas:
+   - **Datos de prueba:** se copiaron Menus (13), Submenus (23) y MenuRoutes (28) de FESV_TEST a NEW_FESV con los mismos ids, en una transacción. Se quedan: era una tarea pendiente del backend. Los hashes de `admin@example` (Admin) y `aebustillo@cipsa.com.sv` (Empleado CIPSA) se respaldaron, se cambiaron por una contraseña temporal y se restauraron al terminar; quedaron idénticos al respaldo y la contraseña temporal da 401.
+   - **Dos roles, dos menús:** Admin ve Inicio, Configuraciones › Menús, Documentos, Clientes, 7 empresas con sus bandejas y Correlativos. Empleado CIPSA ve Inicio, Documentos, Clientes y CIPSA › 3 bandejas. Su selector de fuente ofrece solo "Todas" y CIPSA.
+   - **Fuente:**
+     - Elegir CIPSA › Facturas lleva a `/transmitir/facturas?fuente=CIPSA`.
+     - Se conserva al ir por enlace a Documentos, al recargar y con `router.push('/clientes')` sin `?fuente=`, que la agrega.
+     - `?fuente=XYZ` se quita y vale "Todas".
+     - F abre el selector (también por debajo de 1280 px: abre el drawer y luego el selector) y elegir con teclado actualiza la URL.
+     - Tras cerrar sesión e iniciarla por el formulario, `?next=` vuelve con la fuente.
+   - **Paleta:** Ctrl+K la abre con el foco en el campo. El filtro sin acentos y Enter navegan. "Cambiar a …" cambia la fuente. "Buscar documento por código" aparece deshabilitado. F escrita dentro del campo no abre el selector.
+   - **Hoja "?":** lista los atajos registrados más Esc; Esc la cierra.
+   - **Migas:** Inicio; Transmitir › {pestaña}; Emitidos; Administración › {página}; Correlativos.
+   - **403 sin cerrar sesión:**
+     - Empleado CIPSA en `/admin/rutas`, en `/correlativos` y en `/transmitir/facturas?fuente=SIAT` ve "Sin acceso" con su rol; la cookie sigue y `/auth/me` responde 200.
+     - El backend responde 403 `auth.forbidden` a `GET /routes` con el mismo token.
+     - `/transmitir/facturas` con "Todas" o con CIPSA sí entra.
+   - **Responsive:**
+     - A 1100 px la sidebar se oculta y aparece el botón de menú; el drawer se cierra al navegar (3 de 3 veces).
+     - Sin scroll horizontal a 390 px.
+     - A 1280 px la sidebar queda fija.
+   - **Tema:** claro y oscuro por el selector, con capturas de Transmitir, la paleta y "sin acceso".
+   - **Cerrar sesión:** borra la cookie y queda en `/login`. Antes quedaba en `/login?next=…`: las consultas de permisos sin condición se repetían sin token y el 401 redirigía; ahora dependen de la sesión.
+   - `pnpm typecheck` y `pnpm lint` en verde. Sin errores de consola en las pruebas.
+3. **Partes NO verificadas.**
+   - País SV (la base local es DO): `subtitle` SV, la traducción `se` → sujeto-excluido y que Correlativos se oculte. La lógica es la misma, pero no se ejecutó.
+   - Safari y Mac: el texto "⌘" y `metaKey`. Solo se probó Ctrl.
+   - Lector de pantalla real en la paleta: el patrón combobox + `aria-activedescendant` solo se revisó en el DOM.
+   - El "Reintentar" del menú cuando `/auth/me` falla con 5xx (no se provocó).
+   - Si las 7 fuentes del diccionario son las correctas para DO: la legacy es una sola lista.
+   - Una URL escrita a mano sin `?fuente=` vale "Todas" (la URL manda; no hay localStorage).
+4. **Diferencias con el diseño.**
+   - El menú es el del backend tal cual, agrupado por empresa (CIPSA › Facturas y CCFs…) con los nombres de la base ("Documentos", "Configuraciones"). El diseño muestra un menú plano: Transmitir, Emitidos, Clientes, Administración › Menús, Rutas, Permisos por rol. Por eso tampoco hay un ítem "Transmitir" con badge.
+   - Los grupos con submenús son plegables (en la captura, "Administración" es una etiqueta fija): con 7 empresas el menú de Admin no cabe abierto.
+   - Admin tiene permiso sobre `settings/routes`, `settings/permissions` y `settings/users`, pero la base no tiene entradas de menú para ellas: solo aparece "Menús". Esas pantallas solo se abren escribiendo la URL, porque la paleta también sale del menú.
+   - Sin chip de ambiente (ver 5).
+   - "Inicio" lo agrega el frontend: no es una ruta con permisos en el backend.
+   - El avatar del usuario no lleva el check azul de la captura.
+   - "Fuente" lleva un Kbd "F" que la captura no muestra.
+   - El Kbd del buscador dice "Ctrl K" fuera de Mac.
+   - Las migas no tienen el nivel "Operación" de la captura de la TopBar: no existe en el menú.
+   - El aviso de React Aria "PressResponder was rendered without a pressable child" sale en desarrollo por cada `<Modal>` y `<Drawer>` controlado sin trigger. Es propio de la API de HeroUI v3 (la raíz es un DialogTrigger y aporta los slots de estilo), igual que en `CriticalConfirm`.
+5. **Cambios de contrato para el backend.**
+   - **Menú con rutas del frontend:** `menu[].path` trae claves de permiso (`documents`, `cipsa/fc_ccf`, `settings/menu-management`), y el menú legacy repite las bandejas por empresa. El frontend las traduce en `features/menu/routes.ts`; lo que no reconoce se muestra deshabilitado. Propuesta: separar "pantalla" (`/transmitir/facturas`, `/emitidos`, `/admin/menus`) de "clave de permiso", y un menú plano donde la empresa sea la fuente global. Otra opción: que `/auth/me` devuelva ya la ruta del frontend.
+   - **Entradas de menú para Rutas, Permisos por rol y Usuarios** en la base, o en el seed `docs/db/seed-admin-routes.sql`.
+   - **Ambiente:** exponer el ambiente de la autoridad (producción o pruebas) en `GET /meta/country`, por ejemplo `environment: "production" | "test"`, para el chip de la TopBar. Hoy no está en ningún endpoint.
+   - **Fuentes:** `GET /catalogs/billers` (etapa 6). Mientras tanto, el diccionario copia `RouteKeys.SourcePrefixes`. NEW_FESV no tiene filas en Billers.
+6. **Dependencias.** Ninguna.
+7. **Decisiones pendientes.**
+   - Si el menú se queda por empresa o pasa a plano (depende del punto 5); lo que se decida cambia `Sidebar` y la paleta.
+   - Si la fuente debe recordarse en localStorage para las URLs escritas a mano.
+   - Badges: `NavItem` acepta `badge`, pero hoy no hay a qué colgarlo (no existe el ítem "Transmitir"). Se resuelve junto con el menú.
+   - Las páginas provisionales se reemplazan en las etapas de bandeja, emitidos, clientes, correlativos y administración. `/clientes/nuevo`, `/clientes/[id]` y `/transmitir/lotes/[id]` todavía dan 404 fuera del shell.

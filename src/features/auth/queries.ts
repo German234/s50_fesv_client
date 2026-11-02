@@ -103,7 +103,9 @@ export function useSession() {
     user: me.data?.user ?? null,
     menu: me.data?.menu ?? [],
     isLoading: token !== null && me.isPending,
+    isFetching: me.isFetching,
     error: me.error,
+    refetch: me.refetch,
     signOut,
   };
 }

@@ -42,3 +42,11 @@ export function truncateMiddle(value: string, head = 8, tail = 6): string {
   if (value.length <= head + tail + 1) return value;
   return `${value.slice(0, head)}…${value.slice(-tail)}`;
 }
+
+/** Iniciales para avatares: "María Rivas" → "MR"; "CIPSA" → "CI". */
+export function initials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "";
+  const letters = words.length === 1 ? words[0].slice(0, 2) : words[0][0] + words[1][0];
+  return letters.toLocaleUpperCase("es");
+}
