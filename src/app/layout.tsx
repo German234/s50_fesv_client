@@ -15,7 +15,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Facturación electrónica",
-  description: "Plataforma de facturación electrónica SV/RD",
+  description: "Plataforma de facturación electrónica SV/DO",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

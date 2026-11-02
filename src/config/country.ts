@@ -1,27 +1,28 @@
-// Textos y tablas por país (CLAUDE.md §5). Las capacidades (pestañas habilitadas,
-// supportsInvalidation, supportsCorrelativesAdmin) vienen del backend; aquí solo
-// está lo que el frontend necesita para rotular.
-// TODO etapa 2: validar NEXT_PUBLIC_PAIS contra GET /api/v1/meta/country y los
-// `apiType` contra schema.d.ts.
+// País de la instalación (CLAUDE.md §5). Dos fuentes:
+// - Textos de presentación: diccionario local de este archivo, elegido con NEXT_PUBLIC_PAIS.
+// - Capacidades (pestañas de bandeja, supportsInvalidation, supportsCorrelativesAdmin): backend,
+//   GET /api/v1/meta/country. CountryGate valida que ambos países coincidan antes de renderizar.
 
-export type CountryCode = "SV" | "RD";
+import { useCountryMeta } from "@/features/meta/queries";
+import type { CountryResponse, InboxType } from "@/lib/api/types";
+import { type CountryCode, getCountryCode } from "./countryCode";
 
-export interface TransmitTab {
+export { type CountryCode, getConfiguredCountry, isCountryCode } from "./countryCode";
+
+export interface InboxTabTexts {
   /** Códigos fiscales que agrupa la pestaña, p. ej. ["01", "03"]. */
   codes: string[];
   label: string;
   /** Segmento de ruta: /transmitir/[slug]. */
   slug: string;
-  /** Tipo de bandeja en la API. */
-  apiType: string;
 }
 
-export interface DocumentType {
+export interface DocumentTypeText {
   code: string;
   name: string;
 }
 
-export interface CountryConfig {
+export interface CountryTexts {
   code: CountryCode;
   /** Locale de React Aria y de Intl para fechas. */
   locale: string;
@@ -35,12 +36,13 @@ export interface CountryConfig {
   currency: { code: string; symbol: string };
   emissionHint: string;
   fileFormat: "JSON" | "XML";
-  transmitTabs: TransmitTab[];
-  documentTypes: DocumentType[];
+  /** Texto de cada bandeja que el país puede tener; cuáles existen lo dice el backend. */
+  inboxTabs: Partial<Record<InboxType, InboxTabTexts>>;
+  documentTypes: DocumentTypeText[];
   identityDocuments: string[];
 }
 
-export const COUNTRIES: Record<CountryCode, CountryConfig> = {
+export const COUNTRY_TEXTS: Record<CountryCode, CountryTexts> = {
   SV: {
     code: "SV",
     locale: "es-SV",
@@ -54,11 +56,11 @@ export const COUNTRIES: Record<CountryCode, CountryConfig> = {
     currency: { code: "USD", symbol: "$" },
     emissionHint: "se estampa en el DTE",
     fileFormat: "JSON",
-    transmitTabs: [
-      { codes: ["01", "03"], label: "Facturas y créditos fiscales", slug: "facturas", apiType: "fce" },
-      { codes: ["05"], label: "Notas de crédito", slug: "notas-credito", apiType: "nc" },
-      { codes: ["14"], label: "Sujeto excluido", slug: "sujeto-excluido", apiType: "se" },
-    ],
+    inboxTabs: {
+      fce: { codes: ["01", "03"], label: "Facturas y créditos fiscales", slug: "facturas" },
+      nc: { codes: ["05"], label: "Notas de crédito", slug: "notas-credito" },
+      se: { codes: ["14"], label: "Sujeto excluido", slug: "sujeto-excluido" },
+    },
     documentTypes: [
       { code: "01", name: "Factura" },
       { code: "03", name: "Crédito fiscal" },
@@ -68,10 +70,10 @@ export const COUNTRIES: Record<CountryCode, CountryConfig> = {
     ],
     identityDocuments: ["NIT", "DUI", "NRC"],
   },
-  RD: {
-    code: "RD",
+  DO: {
+    code: "DO",
     locale: "es-DO",
-    subtitle: "RD · DGII",
+    subtitle: "DO · DGII",
     authority: "DGII",
     authorityFull: "la DGII",
     authorityOrg: "DGII",
@@ -81,12 +83,12 @@ export const COUNTRIES: Record<CountryCode, CountryConfig> = {
     currency: { code: "DOP", symbol: "RD$" },
     emissionHint: "se estampa en el e-CF",
     fileFormat: "XML",
-    transmitTabs: [
-      { codes: ["31", "32"], label: "Facturas y créditos fiscales", slug: "facturas", apiType: "fce" },
-      { codes: ["34"], label: "Notas de crédito", slug: "notas-credito", apiType: "nc" },
-      { codes: ["41"], label: "Compras", slug: "compras", apiType: "ce" },
-      { codes: ["43"], label: "Gastos menores", slug: "gastos-menores", apiType: "gm" },
-    ],
+    inboxTabs: {
+      fce: { codes: ["31", "32"], label: "Facturas y créditos fiscales", slug: "facturas" },
+      nc: { codes: ["34"], label: "Notas de crédito", slug: "notas-credito" },
+      ce: { codes: ["41"], label: "Compras", slug: "compras" },
+      gm: { codes: ["43"], label: "Gastos menores", slug: "gastos-menores" },
+    },
     documentTypes: [
       { code: "31", name: "Crédito fiscal" },
       { code: "32", name: "Consumo" },
@@ -99,26 +101,55 @@ export const COUNTRIES: Record<CountryCode, CountryConfig> = {
   },
 };
 
-function readCountryCode(): CountryCode {
-  // Acceso literal para que Next lo incruste en el bundle del cliente.
-  const value = process.env.NEXT_PUBLIC_PAIS;
-  if (value === "SV" || value === "RD") return value;
-  throw new Error(`NEXT_PUBLIC_PAIS debe ser "SV" o "RD" (valor actual: ${JSON.stringify(value)}).`);
+/** Textos del país configurado. Sincrónico: no espera al backend. */
+export function getCountryTexts(): CountryTexts {
+  return COUNTRY_TEXTS[getCountryCode()];
 }
 
-export function getCountry(): CountryConfig {
-  return COUNTRIES[readCountryCode()];
+export interface TransmitTab extends InboxTabTexts {
+  /** Tipo de bandeja en la API. */
+  apiType: InboxType;
 }
 
-/** Configuración del país de esta instalación. Es fija durante toda la sesión. */
-export function useCountry(): CountryConfig {
-  return getCountry();
+export interface Country extends CountryTexts {
+  /** Respuesta del backend: fuente de las capacidades y de la tasa real. */
+  meta: CountryResponse;
+  /** Pestañas de Transmitir en el orden del backend, solo las disponibles. */
+  transmitTabs: TransmitTab[];
+  supportsInvalidation: boolean;
+  supportsCorrelativesAdmin: boolean;
 }
 
-export function findTransmitTab(country: CountryConfig, slug: string): TransmitTab | undefined {
+export function buildCountry(texts: CountryTexts, meta: CountryResponse): Country {
+  const transmitTabs = meta.inboxTypes.flatMap((apiType) => {
+    const tab = texts.inboxTabs[apiType];
+    return tab ? [{ ...tab, apiType }] : [];
+  });
+  return {
+    ...texts,
+    meta,
+    transmitTabs,
+    supportsInvalidation: meta.supportsInvalidation,
+    supportsCorrelativesAdmin: meta.supportsCorrelativesAdmin,
+  };
+}
+
+/**
+ * País de la instalación: textos locales + capacidades del backend. Solo se usa dentro de
+ * CountryGate, que garantiza que la consulta ya respondió y que el país coincide.
+ */
+export function useCountry(): Country {
+  const { data } = useCountryMeta();
+  if (!data) {
+    throw new Error("useCountry() se usó fuera de <CountryGate> o antes de cargar /api/v1/meta/country.");
+  }
+  return buildCountry(getCountryTexts(), data);
+}
+
+export function findTransmitTab(country: Country, slug: string): TransmitTab | undefined {
   return country.transmitTabs.find((tab) => tab.slug === slug);
 }
 
-export function findDocumentType(country: CountryConfig, code: string): DocumentType | undefined {
-  return country.documentTypes.find((type) => type.code === code);
+export function findDocumentType(texts: CountryTexts, code: string): DocumentTypeText | undefined {
+  return texts.documentTypes.find((type) => type.code === code);
 }

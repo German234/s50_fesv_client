@@ -3,7 +3,7 @@ import { Ban, CircleCheck, CircleX, Clock, RotateCw, type LucideIcon } from "luc
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { FiscalButton } from "@/components/fiscal/FiscalButton";
-import { getCountry } from "@/config/country";
+import { getCountryTexts } from "@/config/country";
 import { formatMoney } from "@/lib/format";
 import { ThemeSwitch } from "./ThemeSwitch";
 
@@ -98,7 +98,7 @@ function Panel({ className = "", children }: { className?: string; children: Rea
 }
 
 export default function TemaPage() {
-  const country = getCountry();
+  const country = getCountryTexts();
 
   return (
     <main className="mx-auto flex max-w-[1200px] flex-col gap-10 px-6 py-12">

@@ -177,4 +177,102 @@
     --chip-bg: var(--rejected);
     --chip-fg: var(--rejected-foreground);
   }
+
+  /* Acción fiscal sobre fondo de tinta (BulkActionBar): superficie clara con texto de tinta */
+  .button--fiscal-inverse {
+    --button-bg: var(--fiscal-foreground);
+    --button-bg-hover: color-mix(in oklab, var(--fiscal-foreground) 88%, var(--fiscal) 12%);
+    --button-bg-pressed: var(--button-bg-hover);
+    --button-fg: var(--fiscal);
+  }
+
+  /* Campos (§4): error con fondo danger-soft además del borde danger de HeroUI */
+  .input[data-invalid="true"],
+  .date-input-group[data-invalid="true"] {
+    --input-bg: var(--danger-soft);
+    background-color: var(--danger-soft);
+  }
+
+  /* Fecha de emisión fiscal: campo destacado con borde de tinta */
+  .date-input-group.fiscal-field {
+    --field-border-width: 2px;
+    background-color: var(--surface);
+    border-width: 2px;
+    border-color: var(--foreground);
+  }
+
+  /* DataTable (§7): estados de fila sobre HeroUI Table */
+  .data-table .table__cell {
+    background-color: transparent;
+  }
+
+  @media (hover: hover) {
+    .data-table .table__row:hover .table__cell,
+    .data-table .table__row[data-hovered="true"] .table__cell {
+      background-color: var(--surface-secondary);
+    }
+  }
+
+  .data-table .table__row[data-selected="true"] .table__cell {
+    background-color: var(--accent-soft);
+  }
+
+  .data-table .table__row[data-selected="true"] {
+    outline: 1px solid color-mix(in oklab, var(--accent) 45%, transparent);
+    outline-offset: -1px;
+  }
+
+  /* Fila bloqueada: solo el checkbox se deshabilita; la fila sigue legible y abre el detalle */
+  .data-table .data-table__row--blocked[data-disabled="true"] {
+    opacity: 1;
+    pointer-events: auto;
+    cursor: default;
+  }
+
+  .data-table[data-density="compact"] .table__cell {
+    padding-block: 0.375rem;
+  }
+
+  .data-table[data-density="comfortable"] .table__cell {
+    padding-block: 0.75rem;
+  }
+
+  /* Alert (B03): fondo suave del color de estado, sin sombra; el texto toma el tono del estado */
+  .alert {
+    border-radius: var(--radius-field);
+    box-shadow: none;
+  }
+
+  .alert--default {
+    background-color: var(--surface-secondary);
+  }
+
+  .alert--accent {
+    background-color: var(--accent-soft);
+    color: var(--accent-soft-foreground);
+  }
+
+  .alert--success {
+    background-color: var(--success-soft);
+    color: var(--success-soft-foreground);
+  }
+
+  .alert--warning {
+    background-color: var(--warning-soft);
+    color: var(--warning-soft-foreground);
+  }
+
+  .alert--danger {
+    background-color: var(--danger-soft);
+    color: var(--danger-soft-foreground);
+  }
+
+  .alert:is(.alert--accent, .alert--success, .alert--warning, .alert--danger) .alert__description {
+    color: inherit;
+  }
+
+  /* DocumentSheet: panel flotante redondeado (HeroUI lo pega al borde sin radio) */
+  .drawer__dialog.document-sheet[data-placement="right"] {
+    border-radius: var(--radius-modal);
+  }
 }

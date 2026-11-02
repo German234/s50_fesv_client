@@ -1,6 +1,6 @@
 # CLAUDE.md · s50_fesv_client
 
-Frontend nuevo de la Plataforma de Facturación Electrónica SV/RD. Reemplaza al frontend legacy y consume el backend .NET nuevo.
+Frontend nuevo de la Plataforma de Facturación Electrónica SV/DO. Reemplaza al frontend legacy y consume el backend .NET nuevo.
 
 Responde y documenta en español. Trabaja un bloque a la vez y detente al final de cada uno con el resumen de §11.
 
@@ -61,7 +61,7 @@ Las capturas están en `../new_design/`. Cada pantalla se compara contra su capt
 | `B · Cambiar contraseña.png` | Recuperación (paso final) |
 | `B · Dashboard SV.png` / `B · Dashboard RD.png` | Inicio |
 | `B · Transmitir (interactiva).png` | Bandeja SV |
-| `B · Transmitir RD.png` | Bandeja RD con selección |
+| `B · Transmitir RD.png` | Bandeja DO con selección |
 | `B · Transmitir · selección.png` | Selección + BulkActionBar |
 | `B · Detalle (Drawer).png` | DocumentSheet |
 | `B · Transmitir · confirmación.png` | CriticalConfirm nivel 1 |
@@ -133,11 +133,11 @@ Montos con `Money`: siempre mono, tabular, alineados a la derecha; ceros en `--m
 
 ## §5 · País
 
-`NEXT_PUBLIC_PAIS` = `SV` o `RD`. Al arrancar se valida contra `GET /api/v1/meta/country`; si no coincide, pantalla de error completa con ambos valores. Los textos salen del diccionario local de `src/config/country.ts`; las capacidades (pestañas de bandeja, `supportsInvalidation`, `supportsCorrelativesAdmin`) salen del backend.
+`NEXT_PUBLIC_PAIS` = `SV` o `DO` (República Dominicana se identifica como `DO`, igual que en el backend; las capturas conservan "RD" en el nombre). Al arrancar se valida contra `GET /api/v1/meta/country`; si no coincide, pantalla de error completa con ambos valores. Los textos salen del diccionario local de `src/config/country.ts`; las capacidades (pestañas de bandeja, `supportsInvalidation`, `supportsCorrelativesAdmin`) salen del backend.
 
-| Clave | SV | RD |
+| Clave | SV | DO |
 | --- | --- | --- |
-| `subtitle` (sidebar) | SV · Hacienda | RD · DGII |
+| `subtitle` (sidebar) | SV · Hacienda | DO · DGII |
 | `authority` | MH | DGII |
 | `authorityFull` | Hacienda (MH) | la DGII |
 | `authorityOrg` (dashboard) | Ministerio de Hacienda | DGII |
@@ -155,14 +155,14 @@ Pestañas de Transmitir y slug de ruta ↔ tipo de la API:
 | SV | 01·03 Facturas y créditos fiscales | `facturas` | `fce` |
 | SV | 05 Notas de crédito | `notas-credito` | `nc` |
 | SV | 14 Sujeto excluido | `sujeto-excluido` | `se` |
-| RD | 31·32 Facturas y créditos fiscales | `facturas` | `fce` |
-| RD | 34 Notas de crédito | `notas-credito` | `nc` |
-| RD | 41 Compras | `compras` | `ce` |
-| RD | 43 Gastos menores | `gastos-menores` | `gm` |
+| DO | 31·32 Facturas y créditos fiscales | `facturas` | `fce` |
+| DO | 34 Notas de crédito | `notas-credito` | `nc` |
+| DO | 41 Compras | `compras` | `ce` |
+| DO | 43 Gastos menores | `gastos-menores` | `gm` |
 
-Tipos de documento fiscal para `DocTypeChip`: SV 01 Factura, 03 Crédito fiscal, 05 Nota de crédito, 11 Exportación, 14 Sujeto excluido. RD 31 Crédito fiscal, 32 Consumo, 34 Nota de crédito, 41 Compras, 43 Gastos menores.
+Tipos de documento fiscal para `DocTypeChip`: SV 01 Factura, 03 Crédito fiscal, 05 Nota de crédito, 11 Exportación, 14 Sujeto excluido. DO 31 Crédito fiscal, 32 Consumo, 34 Nota de crédito, 41 Compras, 43 Gastos menores.
 
-Documentos de identidad: SV NIT, DUI, NRC. RD RNC (9 dígitos), cédula (11). Las expresiones regulares se copian literalmente de `../s50_fesv_backend/docs/contrato.md`.
+Documentos de identidad: SV NIT, DUI, NRC. DO RNC (9 dígitos), cédula (11). Las expresiones regulares se copian literalmente de `../s50_fesv_backend/docs/contrato.md`.
 
 ## §6 · Estructura y datos
 
@@ -205,6 +205,17 @@ Datos:
 - Los filtros de cada pantalla viven en la URL (`useUrlFilters`, validados con Zod), para que sobrevivan a una recarga y se puedan compartir.
 - La fuente activa vive en `useSourceStore`, sincronizada con `?fuente=`. "Todas" = `source=all`.
 - Las rutas del menú vienen del backend (`Route.path`); las páginas deben existir en esas mismas rutas.
+
+### Capa de datos (convención)
+
+- **Tipos:** `pnpm api:types` genera `lib/api/schema.d.ts`. `lib/api/types.ts` solo da alias (`ProblemDetails`, `DevErrorKind`…) y utilidades sobre `paths` (`PathParams`, `QueryParams`, `JsonBody`, `JsonResponse`). Si el contrato cambia, se regenera; nunca se edita a mano.
+- **Cliente:** todo pasa por `apiClient` (`lib/api/client.ts`). Rechaza siempre con `ApiError { code, message, status, details, traceId }` (`lib/api/errors.ts`): `code` ← `code`, `message` ← `detail ?? title`, `details` ← `errors`. Los códigos son los del contrato del backend (`PROBLEM_CODES`: `validation.failed`, `auth.unauthenticated`, `auth.forbidden`, `http.notFound`, `server.unexpected`); el frontend no los renombra y, si falta el cuerpo, usa el mismo código por defecto por status que el backend. Solo `network` y `unknown` son propios del frontend. 403 (`isForbidden`) → "sin acceso" sin tocar la sesión; 401 → `clearSession()` y `/login?next=…` (salvo `skipAuthRedirect: true`); sin respuesta → `code: "network"`. Las cancelaciones se propagan sin normalizar.
+- **Sesión:** `configureAuth({ getToken, clearSession })` es el punto de extensión; la etapa 3 lo conecta al store de sesión.
+- **Por dominio:** `features/<dominio>/api.ts` exporta funciones async que reciben `signal` y devuelven tipos de `schema.d.ts` (rutas con `buildPath` + `PathParams`). `features/<dominio>/queries.ts` define `const <dominio>Keys = createQueryKeys("<dominio>")` y los hooks `useX` / `useXMutation`. Las pantallas solo importan de `queries.ts`. El dominio se crea en la etapa que lo conecta; `features/dev` es el ejemplo.
+- **Query keys:** `createQueryKeys` (`lib/api/queryKeys.ts`) → `[país, dominio, "list"|"detail", recurso, …, { source, ...filtros }]`. Invalidar `keys.all` alcanza todo el dominio.
+- **Reintentos:** las queries reintentan hasta 2 veces solo ante red o 5xx. Las mutaciones nunca (`retry: 0` global); en las de transmisión se declara también explícitamente, y el botón se deshabilita con `isPending`.
+- **Stores:** `useSourceStore` + `useSourceUrlSync()` (fuente ↔ `?fuente=`, la URL manda); `useSelectionStore` con `selectionScope(bandeja, tipo, fuente)`; `useUiStore` (densidad y sidebar, persistido en localStorage).
+- **Filtros:** `useUrlFilters(esquemaZod)` lee y escribe la URL con `router.replace`; un parámetro inválido se descarta y vale su default. Listas con `csv(...)`. Los componentes que lo usan van dentro de `<Suspense>`.
 
 ## §7 · Componentes fiscales (`components/fiscal/`)
 
@@ -249,7 +260,7 @@ Errores en línea y bloqueos:
 
 ## §8 · Pantallas
 
-Nota: el guardado en ERP también aplica a RD y el diseño RD lo muestra, pero por ahora se mantiene solo en SV, igual que en producción. En RD se ocultan la tarjeta "Aceptados sin guardar en ERP", la tarjeta "Sincronización con Sage 50" y la acción "Guardar en ERP". Se habilitará más adelante.
+Nota: el guardado en ERP también aplica a DO y el diseño DO lo muestra, pero por ahora se mantiene solo en SV, igual que en producción. En DO se ocultan la tarjeta "Aceptados sin guardar en ERP", la tarjeta "Sincronización con Sage 50" y la acción "Guardar en ERP". Se habilitará más adelante.
 
 ### Shell
 - Sidebar (256 px): logo + "Facturación" + `subtitle` del país; `SourceSwitcher` ("Fuente" + nombre, avatar con iniciales); menú del backend con íconos; grupo "Administración"; badge accent en Transmitir (pendientes) y badge oscuro en Emitidos (rechazados); abajo, selector Claro/Oscuro segmentado y tarjeta de usuario (iniciales, nombre, rol, cerrar sesión).
@@ -271,12 +282,12 @@ Mismo layout que el login, con enlace "← Iniciar sesión". Tres pasos del back
   - Pendientes de transmitir: tarjeta oscura, número grande, desglose por fuente, botón "Transmitir pendientes". Se carga aparte (`/dashboard/pending`) con su propio skeleton.
   - Rechazados por {authority}: total y "N en las últimas 24 h", "Revisar rechazados →".
   - Aceptados sin guardar en ERP: "Sin referencia fiscal en Sage 50", "Guardar en ERP →". Por ahora solo SV (ver nota de §8).
-  - Solo RD: Correlativos por agotarse, "Menos del 10 % disponible", "Ver correlativos →".
+  - Solo DO: Correlativos por agotarse, "Menos del 10 % disponible", "Ver correlativos →".
 - Emitidos por estado: barra apilada y 5 tarjetas con cantidad y porcentaje; cada una enlaza a Emitidos filtrado.
 - Por tipo de documento (barras horizontales con cantidad) y Por fuente (tabla Fuente · barra · Total · Rechazados en badge oscuro).
 - Últimos envíos con error: código de error en badge, referencia · fuente, mensaje y hace cuánto; "Ver los N".
 - Sincronización con Sage 50 (por ahora solo SV): porcentaje grande, "X de Y aceptados ya están en el ERP", barra, pendientes por fuente y botón "Guardar en ERP".
-- Solo RD: tarjeta con borde warning "Correlativos por agotarse", con lista y barras.
+- Solo DO: tarjeta con borde warning "Correlativos por agotarse", con lista y barras.
 - Sin librería de gráficos: divs o SVG con `role="img"` y `aria-label`.
 
 ### Transmitir (`/transmitir/[tipo]`)
@@ -317,7 +328,7 @@ Panel oscuro abajo al centro con `aria-live`: "Transmitiendo a {authorityFull}�
 - Chips de filtro: "Emisión 30 sep – 30 oct ×", "Tipo 01, 03 ×", "+ Filtro".
 - Columnas: Ref. ERP · Fuente (chip) · Tipo · {controlLabel} (o "— sin número asignado —") · Código de generación (truncado + copiar) · Emisión (orden) · Procesado · Estado · ⋯.
 - Paginación de 50: "1–50 de 412 · página 1 de 9".
-- Menú ⋯: Ver PDF (P), Descargar {fileFormat} (D), Copiar código (C), Reenviar correo (E, con el correo destino), Guardar en ERP (S, por ahora solo SV), Reconsultar estado, Regenerar número (solo RD), Invalidar (danger, separado al final). Las acciones no disponibles se muestran deshabilitadas con su motivo (p. ej. "No disponible para e-CF 31").
+- Menú ⋯: Ver PDF (P), Descargar {fileFormat} (D), Copiar código (C), Reenviar correo (E, con el correo destino), Guardar en ERP (S, por ahora solo SV), Reconsultar estado, Regenerar número (solo DO), Invalidar (danger, separado al final). Las acciones no disponibles se muestran deshabilitadas con su motivo (p. ej. "No disponible para e-CF 31").
 - Invalidar (CriticalConfirm nivel 2): "Invalidar {ref} ante {authority}" / "No se puede deshacer. El {docName} pasará a Invalidado; si necesitas reemplazarlo, emite uno nuevo desde la bandeja." Resumen Cliente, Emitido, Total. Campos: Tipo de documento del solicitante, Número de documento, Nombre del solicitante, Motivo. "Escribe los últimos 3 dígitos del {controlLabel} ({ddd}) para confirmar"; mientras no coincida, "Faltan dígitos: el botón se habilita al coincidir." Cancelar / "Invalidar ante {authority}" (danger).
 
 ### Clientes (`/clientes`)
@@ -339,7 +350,7 @@ Panel oscuro abajo al centro con `aria-live`: "Transmitiendo a {authorityFull}�
 - Panel derecho "Buscar en Sage 50": Fuente, "Documento (NIT/DUI) o código", Buscar; resultado "Encontrado en {fuente}" con Nombre, documento, Dirección y Correo, y "Usar estos datos".
 - Barra flotante abajo: "N campos por corregir" (danger), Cancelar, "Guardar" o "Guardar y volver a Transmitir" (⌘S).
 
-### Correlativos (`/correlativos`, solo RD)
+### Correlativos (`/correlativos`, solo DO)
 - Título "Correlativos e-NCF"; subtítulo "Rangos autorizados por la DGII. Alerta cuando queda menos del 10 %." Switch "Mostrar inactivos" con conteo y "+ Nuevo rango".
 - Agrupados por emisor (avatar, nombre, RNC, número de rangos). Tarjetas: "e-CF 31 · Crédito fiscal", serie, chip Activo o "Por agotarse" (warning, con borde warning en la tarjeta), anillo de consumo, e-NCF actual en mono (prefijo en `--muted`), "N disponibles" (en warning si `isLow`) y "Rango 1–5,000". La tarjeta en edición lleva borde accent.
 - Panel "Editar rango": Emisor y Tipo e-CF (solo lectura al editar), Nombre, Máscara, Inicial, Final, Correlativo actual (resaltado en warning) con Alert "Cambiarlo puede producir e-NCF duplicados o saltos. Ajústalo solo para corregir un desfase confirmado.", switch "Rango activo", Cancelar / Guardar cambios.
