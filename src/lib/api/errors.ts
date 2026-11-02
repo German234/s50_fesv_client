@@ -41,6 +41,8 @@ export class ApiError extends Error {
   readonly status: number | null;
   readonly details: Record<string, string[]> | null;
   readonly traceId: string | null;
+  /** Segundos de la cabecera `Retry-After` (429 `http.tooManyRequests`). */
+  readonly retryAfter: number | null;
 
   constructor(init: {
     code: string;
@@ -48,6 +50,7 @@ export class ApiError extends Error {
     status?: number | null;
     details?: Record<string, string[]> | null;
     traceId?: string | null;
+    retryAfter?: number | null;
     cause?: unknown;
   }) {
     super(init.message, { cause: init.cause });
@@ -56,6 +59,7 @@ export class ApiError extends Error {
     this.status = init.status ?? null;
     this.details = init.details ?? null;
     this.traceId = init.traceId ?? null;
+    this.retryAfter = init.retryAfter ?? null;
   }
 }
 
@@ -104,6 +108,7 @@ export function normalizeError(error: unknown): ApiError {
   }
 
   const { status, data } = response;
+  const retryAfter = Number.parseInt(String(response.headers["retry-after"] ?? ""), 10);
   const problem = isProblemDetails(data) ? data : null;
   const message = problem?.detail ?? problem?.title ?? FALLBACK_MESSAGES[status] ?? `Error ${status}.`;
 
@@ -113,6 +118,7 @@ export function normalizeError(error: unknown): ApiError {
     status,
     details: problem?.errors ?? null,
     traceId: problem?.traceId ?? null,
+    retryAfter: Number.isNaN(retryAfter) ? null : retryAfter,
     cause: error,
   });
 }

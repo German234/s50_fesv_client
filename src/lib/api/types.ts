@@ -9,6 +9,14 @@ export type ValidationProblemDetails = Schemas["ValidationProblemDetails"];
 export type DevErrorKind = Schemas["DevErrorKind"];
 export type CountryResponse = Schemas["CountryResponse"];
 export type InboxType = Schemas["InboxType"];
+export type LoginRequest = Schemas["LoginRequest"];
+export type LoginResponse = Schemas["LoginResponse"];
+export type MeResponse = Schemas["MeResponse"];
+export type UserResponse = Schemas["UserResponse"];
+export type MenuItemResponse = Schemas["MenuItemResponse"];
+export type PasswordResetRequest = Schemas["PasswordResetRequest"];
+export type PasswordResetVerifyRequest = Schemas["PasswordResetVerifyRequest"];
+export type PasswordResetConfirmRequest = Schemas["PasswordResetConfirmRequest"];
 
 // Utilidades para tipar las funciones de features/<dominio>/api.ts a partir de `paths`.
 

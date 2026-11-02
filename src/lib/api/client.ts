@@ -1,4 +1,5 @@
 import axios, { type AxiosError } from "axios";
+import { loginHref, PUBLIC_PATHS } from "./authRedirect";
 import { normalizeError } from "./errors";
 
 declare module "axios" {
@@ -8,10 +9,7 @@ declare module "axios" {
   }
 }
 
-/**
- * Punto de extensión de la sesión. La etapa 3 registra aquí el store de sesión con
- * `configureAuth`; mientras tanto no se envía token y el 401 solo redirige.
- */
+/** Punto de extensión de la sesión: Providers registra la cookie de features/auth/session.ts. */
 export interface AuthHandlers {
   getToken: () => string | null;
   clearSession: () => void;
@@ -29,15 +27,13 @@ export function configureAuth(handlers: Partial<AuthHandlers>): void {
   Object.assign(authHandlers, handlers);
 }
 
-export const LOGIN_PATH = "/login";
-const PUBLIC_PATHS = [LOGIN_PATH, "/recuperar"];
-
-function redirectToLogin(): void {
+/** Cierra la sesión local y vuelve al login conservando la ruta actual. */
+export function endSessionAndRedirect(): void {
+  authHandlers.clearSession();
   if (typeof window === "undefined") return;
   const { pathname, search } = window.location;
   if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) return;
-  const next = encodeURIComponent(`${pathname}${search}`);
-  authHandlers.navigate(`${LOGIN_PATH}?next=${next}`);
+  authHandlers.navigate(loginHref(`${pathname}${search}`));
 }
 
 export const apiClient = axios.create({
@@ -60,10 +56,7 @@ apiClient.interceptors.response.use(
 
     const apiError = normalizeError(error);
     // Solo el 401 cierra la sesión; el 403 (auth.forbidden) llega a la pantalla, que muestra "sin acceso".
-    if (apiError.status === 401 && !error.config?.skipAuthRedirect) {
-      authHandlers.clearSession();
-      redirectToLogin();
-    }
+    if (apiError.status === 401 && !error.config?.skipAuthRedirect) endSessionAndRedirect();
     return Promise.reject(apiError);
   },
 );

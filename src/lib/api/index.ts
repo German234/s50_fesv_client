@@ -1,4 +1,5 @@
-export { apiClient, buildPath, configureAuth, LOGIN_PATH, type AuthHandlers } from "./client";
+export { LOGIN_PATH, loginHref, safeNextPath } from "./authRedirect";
+export { apiClient, buildPath, configureAuth, endSessionAndRedirect, type AuthHandlers } from "./client";
 export {
   ApiError,
   CLIENT_ERROR_CODES,

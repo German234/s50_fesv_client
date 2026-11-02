@@ -403,3 +403,10 @@ Registro central en `useShortcuts`; se desactivan con el foco en un input o text
 5. Cambios de contrato que hay que pedirle al backend.
 6. Dependencias agregadas o propuestas.
 7. Decisiones pendientes.
+
+Bitácora de progreso:
+- Al cerrar cada bloque, agrega su Resumen de cierre al final de docs/progreso.md con el encabezado "## <Bloque> · <nombre> · <fecha yyyy-MM-dd>". Una sola entrada por bloque.
+- Si el bloque se detiene a esperar aprobación, no escribas en la bitácora durante la pausa: la entrada va al terminar el bloque completo.
+- Si el bloque se entrega por partes (por ejemplo, un tipo de documento a la vez), usa una sola entrada con un subapartado por parte y complétala a medida que avanzas.
+- El Prompt de revisión no crea una entrada nueva: actualiza la del bloque con un apartado "Revisión" que diga qué se corrigió.
+- Al empezar una sesión nueva, lee docs/progreso.md después de CLAUDE.md.

@@ -8,6 +8,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Toaster } from "sileo";
 import { CountryGate } from "@/components/shell/CountryGate";
 import { COUNTRY_TEXTS, getConfiguredCountry, isCountryCode } from "@/config/country";
+import { endSession, getSessionToken, removeSessionData } from "@/features/auth/session";
 import { configureAuth } from "@/lib/api/client";
 import { isApiError } from "@/lib/api/errors";
 import { useUiStore } from "@/stores/useUiStore";
@@ -30,23 +31,32 @@ export function Providers({ children }: { children: ReactNode }) {
   // Locale del diccionario local; si NEXT_PUBLIC_PAIS es inválido, CountryGate muestra el error.
   const configured = getConfiguredCountry();
   const locale = isCountryCode(configured) ? COUNTRY_TEXTS[configured].locale : "es";
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: { staleTime: 30_000, refetchOnWindowFocus: false, retry: shouldRetryQuery },
-          // Ninguna mutación se reintenta sola: una transmisión repetida tiene efectos fiscales.
-          mutations: { retry: 0 },
-        },
-      }),
-  );
+  const [queryClient] = useState(() => {
+    const client = new QueryClient({
+      defaultOptions: {
+        queries: { staleTime: 30_000, refetchOnWindowFocus: false, retry: shouldRetryQuery },
+        // Ninguna mutación se reintenta sola: una transmisión repetida tiene efectos fiscales.
+        mutations: { retry: 0 },
+      },
+    });
+    // Se registra aquí y no en un efecto: los efectos de los hijos (las primeras queries)
+    // corren antes que los de Providers y saldrían sin token.
+    configureAuth({
+      getToken: getSessionToken,
+      clearSession: () => {
+        endSession();
+        removeSessionData(client);
+      },
+    });
+    return client;
+  });
 
   // Preferencias de UI guardadas en este navegador (ver useUiStore).
   useEffect(() => {
     void useUiStore.persist.rehydrate();
   }, []);
 
-  // El cliente HTTP redirige a /login ante un 401 con el router de Next.
+  // Ante un 401 el cliente HTTP vuelve a /login con el router de Next.
   useEffect(() => {
     configureAuth({ navigate: (href) => router.replace(href) });
   }, [router]);

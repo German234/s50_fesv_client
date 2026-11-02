@@ -188,6 +188,7 @@
 
   /* Campos (§4): error con fondo danger-soft además del borde danger de HeroUI */
   .input[data-invalid="true"],
+  .input-group[data-invalid="true"],
   .date-input-group[data-invalid="true"] {
     --input-bg: var(--danger-soft);
     background-color: var(--danger-soft);
@@ -269,6 +270,11 @@
 
   .alert:is(.alert--accent, .alert--success, .alert--warning, .alert--danger) .alert__description {
     color: inherit;
+  }
+
+  /* Toasts: sileo capitaliza cada palabra del título; en español va en tipo oración */
+  [data-sileo-title] {
+    text-transform: none;
   }
 
   /* DocumentSheet: panel flotante redondeado (HeroUI lo pega al borde sin radio) */
