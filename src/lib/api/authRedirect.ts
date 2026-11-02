@@ -1,7 +1,7 @@
 // Rutas del login y de `?next=`. Sin dependencias: lo importa también src/proxy.ts.
 
 export const LOGIN_PATH = "/login";
-export const PUBLIC_PATHS = [LOGIN_PATH, "/recuperar"];
+export const PUBLIC_PATHS = [LOGIN_PATH];
 
 /** "/emitidos?estado=x" → "/login?next=%2Femitidos%3Festado%3Dx". */
 export function loginHref(next: string): string {

@@ -5,7 +5,6 @@ export const AUTH_ERROR_CODES = {
   invalidCredentials: "auth.invalidCredentials",
   userInactive: "auth.userInactive",
   userWithoutRole: "auth.userWithoutRole",
-  resetCodeInvalid: "auth.resetCodeInvalid",
   tooManyRequests: "http.tooManyRequests",
 } as const;
 
@@ -16,7 +15,7 @@ function tooManyRequests(retryAfter: number | null): string {
 }
 
 /**
- * Mensaje del Alert de los formularios de login y recuperación. El de credenciales es genérico
+ * Mensaje del Alert del formulario de login. El de credenciales es genérico
  * (no dice si falló el correo o la contraseña) y sin contador de intentos (§8).
  */
 export function authErrorMessage(error: unknown): string {
@@ -28,8 +27,6 @@ export function authErrorMessage(error: unknown): string {
       return "Tu usuario está inactivo. Pide a un administrador del sistema que lo reactive.";
     case AUTH_ERROR_CODES.userWithoutRole:
       return "Tu usuario no tiene un rol asignado. Pide a un administrador del sistema que te asigne uno.";
-    case AUTH_ERROR_CODES.resetCodeInvalid:
-      return "El código no es válido o ya venció. Revísalo o pide uno nuevo.";
     case AUTH_ERROR_CODES.tooManyRequests:
       return tooManyRequests(apiError.retryAfter);
     case CLIENT_ERROR_CODES.network:

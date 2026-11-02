@@ -58,7 +58,6 @@ Las capturas están en `../new_design/`. Cada pantalla se compara contra su capt
 | `B · Navegación lateral.png` | Sidebar |
 | `B · Barra superior.png` | TopBar |
 | `B · Login.png` | Login |
-| `B · Cambiar contraseña.png` | Recuperación (paso final) |
 | `B · Dashboard SV.png` / `B · Dashboard RD.png` | Inicio |
 | `B · Transmitir (interactiva).png` | Bandeja SV |
 | `B · Transmitir RD.png` | Bandeja DO con selección |
@@ -169,7 +168,7 @@ Documentos de identidad: SV NIT, DUI, NRC. DO RNC (9 dígitos), cédula (11). La
 ```
 src/
   app/
-    (auth)/login, (auth)/recuperar
+    (auth)/login
     (app)/layout.tsx                 → shell
     (app)/page.tsx                   → dashboard
     (app)/transmitir/[tipo]/page.tsx
@@ -269,12 +268,12 @@ Nota: el guardado en ERP también aplica a DO y el diseño DO lo muestra, pero p
 
 ### Login
 Pantalla dividida.
-- Izquierda: logo "Facturación electrónica"; tarjeta "Bienvenida de nuevo" / "Ingresa con tu correo corporativo."; Correo; Contraseña con enlace "¿La olvidaste?" y botón mostrar/ocultar; errores en Alert danger dentro de la tarjeta; botón "Entrar" (fiscal, ancho completo); pie "¿Problemas para entrar? Contacta al administrador del sistema."
+- Izquierda: logo "Facturación electrónica"; tarjeta "Bienvenida de nuevo" / "Ingresa con tu correo corporativo."; Correo; Contraseña con botón mostrar/ocultar; errores en Alert danger dentro de la tarjeta; botón "Entrar" (fiscal, ancho completo); pie "¿Problemas para entrar? Contacta al administrador del sistema."
 - Derecha: panel oscuro decorativo (`aria-hidden`) con una lista de números de control y su estado, y el texto "Cada documento, transmitido una vez y con certeza." / "De Sage 50 a Hacienda o la DGII: revisa, firma, transmite y conserva la respuesta de cada comprobante."
 - El error de credenciales es genérico: "Correo o contraseña incorrectos." Sin contador de intentos, aunque la captura lo muestre.
 
-### Recuperación (`/recuperar`)
-Mismo layout que el login, con enlace "← Iniciar sesión". Tres pasos del backend: correo → código de 6 dígitos → nueva contraseña. El paso final es la captura "Cambiar contraseña": Correo, Nueva contraseña, Confirmar contraseña, chips en vivo ("8 a 16 caracteres", "No coinciden") y "Guardar contraseña" deshabilitado mientras sea inválido. Los pasos 1 y 2 reutilizan la misma tarjeta.
+### Recuperación de contraseña
+No hay recuperación por el usuario: solo existen usuarios específicos, y un administrador cambia la contraseña desde Administración › Usuarios. No se usan la captura "Cambiar contraseña" ni los endpoints `/auth/password-reset/*`.
 
 ### Dashboard (`/`)
 - "Buenas tardes, {nombre}" según la hora; debajo, periodo · fuentes · `authorityOrg`. Selector segmentado Hoy / 7 días / Este mes / Personalizado.

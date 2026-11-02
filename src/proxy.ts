@@ -15,5 +15,5 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   // Todo menos las pantallas públicas, /dev, los internos de Next y los archivos estáticos.
-  matcher: ["/((?!login|recuperar|dev|api|_next/static|_next/image|favicon\\.ico|.*\\..*).*)"],
+  matcher: ["/((?!login|dev|api|_next/static|_next/image|favicon\\.ico|.*\\..*).*)"],
 };

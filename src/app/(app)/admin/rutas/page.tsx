@@ -1,11 +1,5 @@
-import { PendingScreen } from "@/components/shell/PendingScreen";
+import { RoutesScreen } from "@/features/admin";
 
 export default function AdminRutasPage() {
-  return (
-    <PendingScreen
-      title="Administración de accesos · Rutas"
-      subtitle="Qué ve cada rol en la navegación y qué puede hacer en cada ruta."
-      stage="Administración"
-    />
-  );
+  return <RoutesScreen />;
 }

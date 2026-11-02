@@ -9,17 +9,11 @@ import { createQueryKeys } from "@/lib/api/queryKeys";
 import type {
   LoginRequest,
   LoginResponse,
-  PasswordResetConfirmRequest,
-  PasswordResetRequest,
-  PasswordResetVerifyRequest,
 } from "@/lib/api/types";
 import {
-  confirmPasswordReset,
   getMe,
   getMyPermissions,
   login,
-  requestPasswordReset,
-  verifyPasswordResetCode,
 } from "./api";
 import {
   endSession,
@@ -53,18 +47,6 @@ export function useMyPermissions(options: { enabled?: boolean } = {}) {
 
 export function useLoginMutation() {
   return useMutation({ mutationFn: (body: LoginRequest) => login(body) });
-}
-
-export function usePasswordResetRequestMutation() {
-  return useMutation({ mutationFn: (body: PasswordResetRequest) => requestPasswordReset(body) });
-}
-
-export function usePasswordResetVerifyMutation() {
-  return useMutation({ mutationFn: (body: PasswordResetVerifyRequest) => verifyPasswordResetCode(body) });
-}
-
-export function usePasswordResetConfirmMutation() {
-  return useMutation({ mutationFn: (body: PasswordResetConfirmRequest) => confirmPasswordReset(body) });
 }
 
 /** Token de la cookie; en el servidor y durante la hidratación vale null. */

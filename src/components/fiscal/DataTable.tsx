@@ -184,10 +184,13 @@ export function DataTable<T>({
                 ...(selectable
                   ? [
                       <Table.Column key="__select" id="__select" className="w-12">
+                        {/* En HeroUI 3 el <input> vive en Checkbox.Content: sin él, la casilla es solo decorativa. */}
                         <Checkbox aria-label="Seleccionar todos los de esta página" slot="selection">
-                          <Checkbox.Control>
-                            <Checkbox.Indicator />
-                          </Checkbox.Control>
+                          <Checkbox.Content>
+                            <Checkbox.Control>
+                              <Checkbox.Indicator />
+                            </Checkbox.Control>
+                          </Checkbox.Content>
                         </Checkbox>
                       </Table.Column>,
                     ]
@@ -229,9 +232,11 @@ export function DataTable<T>({
                                   reason !== null ? `${getRowLabel(row)}: no se puede seleccionar` : `Seleccionar ${getRowLabel(row)}`
                                 }
                               >
-                                <Checkbox.Control>
-                                  <Checkbox.Indicator />
-                                </Checkbox.Control>
+                                <Checkbox.Content>
+                                  <Checkbox.Control>
+                                    <Checkbox.Indicator />
+                                  </Checkbox.Control>
+                                </Checkbox.Content>
                               </Checkbox>
                             </Table.Cell>,
                           ]

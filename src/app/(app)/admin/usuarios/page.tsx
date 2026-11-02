@@ -1,11 +1,5 @@
-import { PendingScreen } from "@/components/shell/PendingScreen";
+import { UsersScreen } from "@/features/admin";
 
 export default function AdminUsuariosPage() {
-  return (
-    <PendingScreen
-      title="Administración de accesos · Usuarios"
-      subtitle="Qué ve cada rol en la navegación y qué puede hacer en cada ruta."
-      stage="Administración"
-    />
-  );
+  return <UsersScreen />;
 }

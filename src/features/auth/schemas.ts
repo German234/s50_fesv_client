@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** Regla del backend para la contraseña nueva (`PasswordResetConfirmRequest.newPassword`). */
+/** Regla del backend para las contraseñas nuevas (`CreateUserRequest.password`). */
 export const PASSWORD_MIN = 8;
 export const PASSWORD_MAX = 16;
 
@@ -22,30 +22,6 @@ export const loginSchema = z.object({
 });
 export type LoginForm = z.infer<typeof loginSchema>;
 
-export const resetRequestSchema = z.object({ email });
-export type ResetRequestForm = z.infer<typeof resetRequestSchema>;
-
-export const resetVerifySchema = z.object({
-  code: z
-    .string()
-    .trim()
-    .regex(/^\d{6}$/, "El código tiene 6 dígitos."),
-});
-export type ResetVerifyForm = z.infer<typeof resetVerifySchema>;
-
 export function passwordLengthOk(value: string): boolean {
   return value.length >= PASSWORD_MIN && value.length <= PASSWORD_MAX;
 }
-
-export const resetConfirmSchema = z
-  .object({
-    /** Solo se muestra (solo lectura): es el correo del paso 1. */
-    email: z.string(),
-    newPassword: z.string().refine(passwordLengthOk, `Usa de ${PASSWORD_MIN} a ${PASSWORD_MAX} caracteres.`),
-    confirmPassword: z.string().min(1, "Repite la contraseña."),
-  })
-  .refine((form) => form.newPassword === form.confirmPassword, {
-    message: "Las contraseñas no coinciden.",
-    path: ["confirmPassword"],
-  });
-export type ResetConfirmForm = z.infer<typeof resetConfirmSchema>;

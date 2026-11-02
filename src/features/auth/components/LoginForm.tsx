@@ -2,7 +2,6 @@
 
 import { Button } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { safeNextPath } from "@/lib/api/authRedirect";
@@ -45,11 +44,6 @@ export function LoginForm() {
           label="Contraseña"
           type="password"
           autoComplete="current-password"
-          labelAction={
-            <Link href="/recuperar" className="text-body text-accent rounded-sm underline underline-offset-2">
-              ¿La olvidaste?
-            </Link>
-          }
         />
         {login.isError && <FormAlert status="danger">{authErrorMessage(login.error)}</FormAlert>}
         <Button

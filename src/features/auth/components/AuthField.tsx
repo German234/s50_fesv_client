@@ -2,7 +2,7 @@
 
 import { Button, FieldError, Input, InputGroup, Label, TextField } from "@heroui/react";
 import { Eye, EyeOff } from "lucide-react";
-import { useId, useState, type ReactNode } from "react";
+import { useId, useState } from "react";
 import { useController, type Control, type FieldPath, type FieldValues } from "react-hook-form";
 
 interface AuthFieldProps<T extends FieldValues> {
@@ -16,8 +16,6 @@ interface AuthFieldProps<T extends FieldValues> {
   isReadOnly?: boolean;
   /** Ids de textos externos que describen el campo (p. ej. las reglas de la contraseña). */
   describedBy?: string;
-  /** Enlace a la derecha de la etiqueta ("¿La olvidaste?"). */
-  labelAction?: ReactNode;
   inputClassName?: string;
   /** Mostrar el error de Zod debajo del campo; si las reglas ya lo dicen (chips), false. */
   showError?: boolean;
@@ -38,7 +36,6 @@ export function AuthField<T extends FieldValues>({
   maxLength,
   isReadOnly,
   describedBy,
-  labelAction,
   inputClassName,
   showError = true,
 }: AuthFieldProps<T>) {
@@ -65,10 +62,7 @@ export function AuthField<T extends FieldValues>({
       aria-describedby={describedBy}
       className="flex flex-col gap-2"
     >
-      <div className="flex items-baseline justify-between gap-2">
-        <Label>{label}</Label>
-        {labelAction}
-      </div>
+      <Label>{label}</Label>
       {isPassword ? (
         <InputGroup className="h-12 shadow-none">
           <InputGroup.Input className={inputClassName} />

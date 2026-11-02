@@ -1,4 +1,4 @@
-export { menuIcon } from "./icons";
+export { hasMenuIcon, MATERIAL_ICON_NAMES, menuIcon } from "./icons";
 export {
   buildNavigation,
   useAllowedSources,
